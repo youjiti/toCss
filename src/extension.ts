@@ -68,6 +68,9 @@ function compileCss(rules: any[] = []) {
       if ((node?.selector || '')[0] === '&') {
         node.f = (rule.f || '') + rule.selector;
         return true;
+      } else if((node?.selector || '')[0] === '.'){
+        node.f = '';
+        return true;
       }
     }));
   });
@@ -106,7 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
       const cssdoc = (await vscode.workspace.openTextDocument(uri));
       const root = postcss_less.parse(cssdoc?.getText());
       classNames = {};
-      compileCss((root?.nodes || []).filter((rule: any) => rule.type === 'rule'));
+      compileCss((root?.nodes || []).filter((rule: any) => rule.type === 'rule' && rule?.selector[0] === '.'));
       const index = (classNames['.' + name] || 1) - 1;
       const range = new vscode.Range(new vscode.Position(index, 0), new vscode.Position(index + 1, 0));
       return new vscode.Location((uri), range);
