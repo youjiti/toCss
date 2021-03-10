@@ -56,21 +56,30 @@ let classNames: any = {};
 function compileCss(rules: any[] = []) {
   if (rules.length === 0) { return; }
   rules.forEach((rule: any) => {
-    rule.selector = rule.selector.substr((rule.f || '') ? 1 : 0);
-    if(rule.selector.includes(',')){
-      const arr = rule.selector.split(',');
-      classNames[(rule.f || '') + arr[0]] = rule.positionInside().line;
-      classNames[(rule.f || '') + arr[1].split('&')[1]] = rule.positionInside().line + 1;
-    }else{
-      classNames[(rule.f || '') + rule.selector] = rule.positionInside().line;
+    rule.selector = rule.selector.substr(rule.selector[0] === '&' ? 1 : 0);
+    if(rule.f||rule.selector[0] === '.'){
+      if(rule.selector.includes(',')){
+        const arr = rule.selector.split(',');
+        classNames[(rule.f || '') + arr[0]] = rule.positionInside().line;
+        classNames[(rule.f || '') + arr[1].split('&')[1]] = rule.positionInside().line + 1;
+      }else{
+        classNames[(rule.f || '') + rule.selector] = rule.positionInside().line;
+      }
     }
     compileCss((rule.nodes || []).filter((node: any) => {
       if ((node?.selector || '')[0] === '&') {
-        node.f = (rule.f || '') + rule.selector;
+        node.f = rule.s ? '' : (rule.f || '') + rule.selector;
         return true;
       } else if((node?.selector || '')[0] === '.'){
         node.f = '';
         return true;
+      } else if(node.type === 'rule'){
+        compileCss(node.nodes.filter((r:any)=>{
+          if(r.type === 'rule'){
+            r.s = true;
+            return true;
+          }
+        }));
       }
     }));
   });
@@ -109,7 +118,7 @@ export function activate(context: vscode.ExtensionContext) {
       const cssdoc = (await vscode.workspace.openTextDocument(uri));
       const root = postcss_less.parse(cssdoc?.getText());
       classNames = {};
-      compileCss((root?.nodes || []).filter((rule: any) => rule.type === 'rule' && rule?.selector[0] === '.'));
+      compileCss((root?.nodes || []).filter((rule: any) => rule.type === 'rule'));
       const index = (classNames['.' + name] || 1) - 1;
       const range = new vscode.Range(new vscode.Position(index, 0), new vscode.Position(index + 1, 0));
       return new vscode.Location((uri), range);
