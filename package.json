@@ -2,7 +2,7 @@
   "name": "tocss",
   "displayName": "toCss",
   "description": "",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.46.0"
   },
@@ -11,35 +11,11 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:tocss.toCss",
     "onLanguage:typescriptreact",
     "onLanguage:javascript"
   ],
   "main": "./out/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "tocss.toCss",
-        "title": "跳转到less文件"
-      }
-    ],
-    "menus": {
-      "editor/context": [
-        {
-          "when": "editorHasSelection",
-          "command": "tocss.toCss",
-          "group": "6_px"
-        }
-      ]
-    },
-    "keybindings": [
-      {
-        "when": "editorHasSelection",
-        "command": "tocss.toCss",
-        "key": "ctrl+m"
-      }
-    ]
-  },
+  "contributes": {},
   "scripts": {
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",
@@ -64,9 +40,6 @@
     "vscode-test": "^1.4.0"
   },
   "dependencies": {
-    "@babel/parser": "^7.13.9",
-    "@babel/traverse": "^7.13.0",
-    "postcss": "^8.2.7",
     "postcss-less": "^4.0.1"
   }
 }
