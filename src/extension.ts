@@ -62,17 +62,34 @@ export function activate(context: vscode.ExtensionContext) {
     { language: 'javascript', scheme: 'file' },
     { language: 'typescriptreact', scheme: 'file' }], {
     async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken) {
-      const name = document.getText(document.getWordRangeAtPosition(position));
+      let name = document.getText(document.getWordRangeAtPosition(position));
       const text = document.getText();
       const arrText = text.split('\n');
       const lineText = arrText[position.line];
       let stylesName = '';
-      lineText.replace(new RegExp("[a-zA-Z0-9_]{1,}." + name, "g"), (s, i) => {
-        if (!/[0-9]|[a-z]|[A-Z]|_/.test(lineText[i + s.length])) {
-          stylesName = s.split('.')[0];
-        }
-        return s;
-      });
+      if (lineText.includes('.' + name)) {
+        lineText.replace(new RegExp("[a-zA-Z0-9_]{1,}." + name, "g"), (s, i) => {
+          if (!/[0-9]|[a-z]|[A-Z]|_/.test(lineText[i + s.length])) {
+            stylesName = s.split('.')[0];
+          }
+          return s;
+        });
+      } else {
+        lineText.replace(/\[([^\[\]]*)\]/g, (s, _, i) => {
+          name = s.substr(2, s.length - 4);
+          const styleline = lineText.split(s)[0].replace(/(^\s*)|(\s*$)/g, "");
+          let f = true;
+          for (let i = styleline.length - 1; i >= 0; i--) {
+            const element = styleline[i];
+            if (/[0-9]|[a-z]|[A-Z]|_/.test(element) && f) {
+              stylesName = element + stylesName;
+            } else {
+              f = false;
+            }
+          }
+          return s;
+        });
+      }
       const requirePaths = arrText.find(path => path.includes(' ' + stylesName + ' '));
       let requirePath = '';
       if (requirePaths?.includes("'")) {
